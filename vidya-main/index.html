@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - AI VidyaSetu 1.0 Submission</title>
+    
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+</head>
+<body>
+
+    <!-- NOTE: The old background divs have been removed for simplicity -->
+
+    <!-- NAVBAR -->
+    <div class="nav-wrap">
+      <div class="nav">
+        <div class="logo">AI</div>
+        <ul class="nav-links" id="main-nav">
+          <li class="active" data-section="home">Home</li>
+          <li data-section="scheduler">Scheduler (Prototype)</li> 
+          <li data-section="timer">Focus Timer (Prototype)</li> 
+          <li data-section="about">Design Process</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <!-- HOME SECTION -->
+    <section class="section active" id="home">
+      <div class="stage">
+        <div class="left-panel">
+          <div class="pill">AI VidyaSetu 1.0 - Code for New Bharat</div>
+          <div class="title">Vidya Ai</div>
+          <div class="lede">An AI-Powered Study Schedule Generator to enhance student productivity for a Viksit Bharat 2047.</div>
+          <button class="cta" id="get-started-btn">View Our Prototype</button>
+        </div>
+        <div class="right-panel">
+          <model-viewer src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" alt="Astronaut" camera-controls auto-rotate class="floating-astronaut"></model-viewer>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCHEDULER SECTION -->
+    <section class="section" id="scheduler">
+        <div class="ai-header">
+            <h2 class="ai-title">AI-Powered Scheduler</h2>
+            <p class="ai-subtitle">This is the scheduling component of our StudyBuddy prototype. Add tasks and generate an optimized study plan.</p>
+        </div>
+        <div class="content-wrapper">
+            <div class="task-column">
+                <h2>Add a New Task</h2>
+                <form id="task-form">
+                    <input type="text" id="task-subject" placeholder="Subject (e.g., Physics)" required>
+                    <input type="text" id="task-name" placeholder="Task/Topic (e.g., Chapter 5)" required>
+                    <div class="form-row"><label for="task-due-date">Due:</label><input type="date" id="task-due-date" required></div>
+                    <div class="form-row"><label for="task-hours">Hours:</label><input type="number" id="task-hours" min="1" placeholder="Est. Hours" required></div>
+                    <div class="form-row"><label for="task-priority">Priority:</label><select id="task-priority"><option value="1">Low</option><option value="2" selected>Medium</option><option value="3">High</option></select></div>
+                    <button type="submit" class="btn add-task-btn">Add Task</button>
+                </form>
+                <div class="task-list-container"><h2>Your Task List</h2><ul id="task-list"></ul></div>
+                <button id="clear-data-btn" class="btn clear-data-btn">Clear All Data</button>
+            </div>
+            <div class="schedule-column">
+                <h2>Generated Schedule</h2>
+                <div class="schedule-controls">
+                    <label for="daily-hours">Max Study Hours/Day:</label><input type="number" id="daily-hours" value="6" min="1" max="12">
+                    <button id="generate-schedule-btn" class="btn generate-btn"><span>Generate Schedule with AI</span></button>
+                </div>
+                <div id="schedule-output"><p class="placeholder">Your study plan will appear here...</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOCUS TIMER SECTION -->
+    <section class="section" id="timer">
+        <div class="ai-header">
+            <h1 class="ai-title">Intelligent Focus Timer</h1>
+            <p class="ai-subtitle">This is the focus-tracking component of our prototype, featuring smart, camera-based auto-pause.</p>
+        </div>
+         <div class="timer-content-wrapper">
+            <div class="progress-ring-container">
+                <svg class="progress-ring" width="220" height="220">
+                    <circle class="progress-ring__track" cx="110" cy="110" r="100"/>
+                    <circle id="progress-ring-indicator" class="progress-ring__indicator" cx="110" cy="110" r="100"/>
+                </svg>
+                <div id="timer-display" class="timer-display">25:00</div>
+            </div>
+            <div class="timer-task-container">
+                <h3>Current Task:</h3>
+                <p id="current-task-display">Ready for a focus session!</p>
+            </div>
+            <div class="camera-container">
+                <video id="video" width="400" height="225" muted playsinline></video>
+                <div id="status-text">Initializing Camera...</div>
+            </div>
+            <div class="timer-button-container">
+                <button id="timer-start-btn" class="btn start">Start</button>
+                <button id="timer-pause-btn" class="btn pause" disabled>Pause</button>
+                <button id="timer-reset-btn" class="btn reset" disabled>Reset</button>
+                <button id="timer-stop-btn" class="btn stop" disabled>Stop</button>
+            </div>
+            <div class="timer-settings">
+                <div><label for="work-minutes">Work</label><input class="settings-input" type="number" id="work-minutes" value="25" min="1"></div>
+                <div><label for="short-break-minutes">Short Break</label><input class="settings-input" type="number" id="short-break-minutes" value="5" min="1"></div>
+                <div><label for="long-break-minutes">Long Break</label><input class="settings-input" type="number" id="long-break-minutes" value="15" min="1"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="section about-section" id="about">
+      <div class="about-header">
+        <h2 class="about-title">Design Thinking Process</h2>
+        <p class="about-subtitle">Our complete methodology for creating StudyBuddy, following the 5 steps of Design Thinking.</p>
+      </div>
+      
+      <div class="design-thinking-content">
+        <!-- STEP 1: EMPATHIZE -->
+        <h3>STEP 1: EMPATHIZE (15 Points)</h3>
+        <p><strong>Problem Identification:</strong> Through observations in our local community, we identified that high school and college students consistently struggle with managing their study schedules, leading to high stress levels before exams and inefficient learning habits.</p>
+        <p><strong>User Understanding:</strong> Our target users are students aged 15-22. Their primary needs are a structured yet flexible study plan, a way to combat distractions (like smartphones), and a method to track their progress without feeling overwhelmed.</p>
+        <p><strong>Community Impact:</strong> This problem affects the academic performance and mental well-being of thousands of students in our community. Inefficient study habits lead to burnout and a lower quality of education, impacting future opportunities.</p>
+        <p><strong>Information Gathering:</strong> We conducted interviews with 20 students from local schools and colleges and surveyed 50 more. A key insight was that over 80% of students use no specific tool for planning and rely on last-minute cramming.</p>
+        <p><strong>Real-life Example:</strong> "Riya, a 12th-grade student, told us she often spends 3-4 hours 'studying' but only gets 1 hour of effective work done due to constant distractions and not knowing what to focus on first. This causes immense anxiety."</p>
+
+        <!-- STEP 2: DEFINE -->
+        <h3>STEP 2: DEFINE (15 Points)</h3>
+        <p><strong>Problem Articulation:</strong> Students in our community lack an accessible and intelligent tool to create personalized study schedules, forcing them into cycles of procrastination, stress, and inefficient learning.</p>
+        <p><strong>Problem Statement:</strong> Working students in our community need a way to automate and optimize their study planning because they waste significant time and mental energy trying to manually organize their workload, which affects their academic results and well-being.</p>
+        <p><strong>"How Might We" Question:</strong> How might we create a smart, adaptive tool that empowers students to build effective study habits, manage their time efficiently, and reduce exam-related anxiety?</p>
+        <p><strong>Theme Connection:</strong> This problem directly connects to the <strong>Industry 4.0</strong> theme for Viksit Bharat 2047 by preparing a more organized, productive, and mentally resilient student workforce for the future.</p>
+
+        <!-- STEP 3: IDEATE -->
+        <h3>STEP 3: IDEATE (20 Points)</h3>
+        <p><strong>Creative Solution Ideas (Brainstormed):</strong></p>
+        <ul>
+          <li>1. An AI-powered study schedule generator that prioritizes tasks.</li>
+          <li>2. A "focus mode" app that blocks distracting websites and apps.</li>
+          <li>3. A smart Pomodoro timer with presence detection to ensure breaks are taken properly.</li>
+          <li>4. A peer-to-peer platform for sharing study notes and resources.</li>
+          <li>5. An AI chatbot tutor for answering academic questions.</li>
+        </ul>
+        <p><strong>Idea Selection:</strong> We chose to combine ideas #1 and #3. An AI scheduler tackles the root problem of planning, while an intelligent focus timer ensures the plan is executed effectively. This combination provides a complete end-to-end solution for time management.</p>
+        <p><strong>Technology Approach:</strong> AI/Machine Learning + Web Development.</p>
+        <p><strong>Innovation Factor:</strong> The key innovation is the integration of an AI scheduler with a camera-aware focus timer. The system not only creates the plan but also helps the user stick to it by creating an intelligent, responsive study environment.</p>
+
+        <!-- STEP 5: TEST -->
+        <h3>STEP 5: TEST (15 Points)</h3>
+        <p><strong>Testing Strategy:</strong></p>
+        <ul>
+            <li><strong>User Type 1: High School Students.</strong> They will use StudyBuddy to plan for their weekly tests for 2 weeks. Our learning objective is to see if the tool reduces their self-reported stress levels.</li>
+            <li><strong>User Type 2: College Students.</strong> They will use the app to manage multiple subject deadlines over a month. Our objective is to measure if they can complete their assignments ahead of the deadline more consistently.</li>
+            <li><strong>User Type 3: Competitive Exam Aspirants.</strong> They will use the focus timer for 50 study sessions. Our objective is to determine if the auto-pause feature helps them maintain longer periods of deep work.</li>
+        </ul>
+        <p><strong>Success Measurement:</strong></p>
+        <ul>
+            <li><strong>Metric 1: Task Completion Rate.</strong> Target: 30% increase in tasks completed on or before the due date.</li>
+            <li><strong>Metric 2: User Satisfaction.</strong> Target: 4.5/5 rating from user surveys on ease of use and effectiveness.</li>
+            <li><strong>Metric 3: Focus Session Integrity.</strong> Target: 90% of paused sessions during a focus block are initiated by the auto-pause feature, indicating users are taking proper breaks.</li>
+        </ul>
+        <p><strong>Feedback Collection:</strong> Online surveys, user interviews, and analytics on task completion within the app.</p>
+        
+        <h3>Team Information</h3>
+        <table class="team-table">
+            <thead>
+                <tr>
+                    <th>Name of Team Member</th>
+                    <th>Role of Team Member</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Aniket Roy</td>
+                    <td>Team Lead & AI Developer</td>
+                </tr>
+                <tr>
+                    <td>Yash</td>
+                    <td>Frontend Developer</td>
+                </tr>
+                <tr>
+                    <td>Ankit</td>
+                    <td>Backend & Logic Developer</td>
+                </tr>
+                 <tr>
+                    <td>Sumanta</td>
+                    <td>UI/UX Designer</td>
+                </tr>
+            </tbody>
+        </table>
+      </div>
+    </section>
+</body>
+</html>

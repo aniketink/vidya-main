@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vidya AI - AI Study Suite</title>
+    
+    <!-- LIBRARIES -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =================================================================================== */
+        /* CSS - Carcino/Touchdown Inspired Redesign                                       */
+        /* =================================================================================== */
+        :root {
+            --bg-color: #0A0A0A;
+            --card-bg: rgba(26, 26, 26, 0.7);
+            --border-color: rgba(160, 128, 255, 0.2);
+            --text-color: #EAEAEA;
+            --text-muted: #888888;
+            --accent-glow: #A080FF;
+            --accent-dark: #6A44FF;
+            --accent-green: #2ECC71;
+            --accent-red: #E74C3C;
+            --accent-yellow: #F1C40F;
+            --accent-blue: #3498DB;
+            --disabled-color: #333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden;
+            position: relative;
+            background-image:
+                radial-gradient(circle at 15% 25%, rgba(160, 128, 255, 0.08), transparent 30%),
+                radial-gradient(circle at 85% 75%, rgba(106, 68, 255, 0.08), transparent 40%);
+        }
+
+        /* --- NAVBAR --- */
+        .nav-wrap {
+            position: fixed; top: 20px; left: 50%;
+            transform: translateX(-50%); z-index: 1000;
+        }
+        .nav {
+            display: flex; align-items: center; gap: 16px;
+            background: rgba(18, 18, 18, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 100px; padding: 6px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            backdrop-filter: blur(12px);
+        }
+        .logo {
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--accent-dark), var(--accent-glow));
+            font-weight: 700; font-size: 1.1em;
+        }
+        .nav-links { list-style: none; display: flex; }
+        .nav-links li {
+            padding: 8px 20px; border-radius: 100px;
+            transition: all 0.25s ease; cursor: pointer;
+            font-size: 14px; font-weight: 500; color: var(--text-muted);
+        }
+        .nav-links li:hover { color: var(--text-color); }
+        .nav-links li.active { background: rgba(255,255,255,0.08); color: var(--text-color); }
+
+        /* --- SECTIONS & SHARED STYLES --- */
+        .section { display: none; padding: 120px 5% 40px; min-height: 100vh; animation: fadeIn 0.6s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section.active { display: block; }
+        .ai-header { text-align: center; margin-bottom: 50px; }
+        .ai-title { font-size: 3.5rem; font-weight: 800; color: var(--text-color); margin-bottom: 15px; letter-spacing: -1.5px; }
+        .ai-subtitle { color: var(--text-muted); font-size: 1.2rem; max-width: 600px; margin: 0 auto; line-height: 1.6; }
+
+        /* --- HOME SECTION --- */
+        #home { display: flex; align-items: center; justify-content: center; }
+        .stage { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; }
+        .left-panel { flex-basis: 50%; }
+        .right-panel { flex-basis: 40%; }
+        .title { font-size: 5rem; font-weight: 800; letter-spacing: -2px; line-height: 1.1; margin-bottom: 20px; }
+        .lede { color: var(--text-muted); font-size: 1.1rem; line-height: 1.7; max-width: 500px; margin-bottom: 30px; }
+        .cta {
+            padding: 14px 28px; border-radius: 100px;
+            background: var(--accent-dark); border: 1px solid var(--accent-dark);
+            color: white; font-weight: 600; font-size: 16px;
+            cursor: pointer; transition: all 0.3s ease;
+        }
+        .cta:hover { background: var(--accent-glow); border-color: var(--accent-glow); box-shadow: 0 0 20px rgba(160, 128, 255, 0.4); }
+
+        /* --- SCHEDULER & TIMER STYLES --- */
+        .content-wrapper { display: flex; gap: 30px; max-width: 1300px; margin: 0 auto; }
+        .task-column, .schedule-column { flex: 1; background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
+        h2 { margin-top: 0; padding-bottom: 15px; font-size: 1.5rem; border-bottom: 1px solid var(--border-color); margin-bottom: 25px; }
+        #task-form { display: flex; flex-direction: column; gap: 15px; }
+        #task-form input, #task-form select { background: #101010; border: 1px solid #333; color: var(--text-color); padding: 12px; border-radius: 8px; font-size: 16px; }
+        .task-list-container { margin-top: 25px; }
+        #task-list { list-style: none; padding: 0; max-height: 400px; overflow-y: auto; }
+        .task-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--accent-glow); }
+        .task-item.completed { opacity: 0.5; text-decoration: line-through; border-left-color: var(--accent-green); }
+        .delete-btn { background: var(--accent-red); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; flex-shrink: 0; }
+        .schedule-controls { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        #schedule-output { background: #101010; padding: 15px; border-radius: 10px; height: 500px; overflow-y: auto; }
+        .schedule-day h3 { background: var(--accent-dark); color: white; padding: 8px; border-radius: 5px; text-align: center; margin-bottom: 15px; }
+        .schedule-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 5px; margin-bottom: 8px; border-left: 3px solid var(--accent-green); }
+        .schedule-item.break { border-left-color: var(--accent-yellow); }
+        .add-task-btn, .generate-btn, .clear-data-btn, .btn {
+            border: none; border-radius: 8px; padding: 14px 20px;
+            font-size: 16px; font-weight: 600; color: white;
+            cursor: pointer; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .add-task-btn { background-color: var(--accent-dark); }
+        .generate-btn { background-color: var(--accent-green); }
+        .clear-data-btn { background-color: var(--accent-red); margin-top: 15px; width: 100%;}
+        .btn:disabled { background-color: var(--disabled-color) !important; cursor: not-allowed; }
+        .timer-content-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; max-width: 500px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); }
+        .progress-ring-container { position: relative; width: 220px; height: 220px; }
+        .progress-ring { transform: rotate(-90deg); }
+        .progress-ring__track, .progress-ring__indicator { fill: none; stroke-width: 10; }
+        .progress-ring__track { stroke: rgba(255, 255, 255, 0.1); }
+        .progress-ring__indicator { stroke: var(--accent-glow); stroke-linecap: round; transition: all 0.5s; }
+        .timer-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 50px; font-weight: bold; }
+        .timer-task-container { text-align: center; background: rgba(0,0,0,0.2); padding: 15px 25px; border-radius: 10px; width: 100%; }
+        .camera-container { position: relative; border-radius: 10px; overflow: hidden; line-height: 0; border: 1px solid var(--border-color); }
+        #status-text { position: absolute; top: 10px; left: 10px; padding: 5px 10px; border-radius: 5px; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+        .timer-button-container { display: flex; justify-content: center; gap: 10px; width: 100%; }
+        .timer-settings { display: flex; gap: 15px; margin-top: 15px; width: 100%; }
+        .timer-settings div { display: flex; flex-direction: column; align-items: center; flex-grow: 1; }
+        .timer-settings label { font-size: 0.8em; margin-bottom: 5px; }
+        .timer-settings input { width: 80px; text-align: center; background: #101010; border: 1px solid #333; color: var(--text-color); padding: 8px; border-radius: 5px; }
+        .start { background-color: var(--accent-green); }
+        .pause { background-color: var(--accent-yellow); }
+        .reset { background-color: var(--accent-red); }
+        .stop { background-color: var(--accent-grey); }
+        .notification {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            padding: 15px 30px; border-radius: 10px; background: #1a1a1a;
+            border: 1px solid var(--border-color); color: var(--text-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            transition: top 0.5s ease-in-out; z-index: 1000;
+        }
+        .notification.show { top: 80px; }
+        .notification.success { border-left: 4px solid var(--accent-green); }
+        .notification.error { border-left: 4px solid var(--accent-red); }
+        .loader { width: 18px; height: 18px; border: 2px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { to { transform: rotate(360deg); } }
+
+        /* ABOUT SECTION / DESIGN PROCESS */
+        .about-section { padding: 100px 10% 60px; }
+        .design-thinking-content { max-width: 900px; margin: 0 auto; }
+        .design-thinking-content h3 { font-size: 1.8rem; color: var(--accent-glow); margin-top: 40px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        .design-thinking-content p, .design-thinking-content ul { margin-bottom: 15px; line-height: 1.7; color: #d0d0d0; }
+        .design-thinking-content ul { list-style-position: inside; padding-left: 10px; }
+        .team-table { width: 100%; margin-top: 30px; border-collapse: collapse; background: rgba(20,20,30,0.6); border-radius: 8px; overflow: hidden; }
+        .team-table th, .team-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .team-table th { background-color: var(--accent-dark); color: white; }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div id="notification" class="notification"></div>
+    
+    <!-- NAVBAR -->
+    <div class="nav-wrap">
+        <div class="nav">
+            <div class="logo">AI</div>
+            <ul class="nav-links" id="main-nav">
+                <li class="active" data-section="home">Home</li>
+                <li data-section="scheduler">Scheduler</li>
+                <li data-section="timer">Focus Timer</li>
+                <li data-section="about">Design Process</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- HOME SECTION -->
+    <section class="section active" id="home">
+        <div class="stage">
+            <div class="left-panel">
+                <div class="pill">AI VidyaSetu 1.0 - Code for New Bharat</div>
+                <div class="title">Vidya AI</div>
+                <div class="lede">An AI-Powered Study Suite to enhance student productivity for a Viksit Bharat 2047.</div>
+                <button class="cta" id="get-started-btn">View Prototype</button>
+            </div>
+            <div class="right-panel">
+                <model-viewer src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" alt="Astronaut" camera-controls auto-rotate class="floating-astronaut"></model-viewer>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCHEDULER SECTION -->
+    <section class="section" id="scheduler">
+        <div class="ai-header">
+            <h2 class="ai-title">AI-Powered Scheduler</h2>
+            <p class="ai-subtitle">Add your tasks and let our in-house algorithm generate an optimized study plan instantly.</p>
+        </div>
+        <div class="content-wrapper">
+            <div class="task-column">
+                <h2>Add a New Task</h2>
+                <form id="task-form">
+                    <input type="text" id="task-subject" placeholder="Subject (e.g., Physics)" required>
+                    <input type="text" id="task-name" placeholder="Task/Topic (e.g., Chapter 5)" required>
+                    <div class="form-row"><label>Due:</label><input type="date" id="task-due-date" required></div>
+                    <div class="form-row"><label>Hours:</label><input type="number" id="task-hours" min="1" placeholder="Est. Hours" required></div>
+                    <div class="form-row"><label>Priority:</label><select id="task-priority"><option value="1">Low</option><option value="2" selected>Medium</option><option value="3">High</option></select></div>
+                    <button type="submit" class="btn add-task-btn">Add Task</button>
+                </form>
+                <div class="task-list-container"><h2>Your Task List</h2><ul id="task-list"></ul></div>
+                <button id="clear-data-btn" class="btn clear-data-btn">Clear All Data</button>
+            </div>
+            <div class="schedule-column">
+                <h2>Generated Schedule</h2>
+                <div class="schedule-controls">
+                    <label>Max Study Hours/Day:</label><input type="number" id="daily-hours" value="6" min="1" max="12">
+                    <button id="generate-schedule-btn" class="btn generate-btn"><span>Generate Schedule</span></button>
+                </div>
+                <div id="schedule-output"><p class="placeholder">Your study plan will appear here...</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOCUS TIMER SECTION -->
+    <section class="section" id="timer">
+        <div class="ai-header">
+            <h1 class="ai-title">Intelligent Focus Timer</h1>
+            <p class="ai-subtitle">Execute your plan with smart, camera-based auto-pause.</p>
+        </div>
+         <div class="timer-content-wrapper">
+            <div class="progress-ring-container">
+                <svg class="progress-ring" width="220" height="220">
+                    <circle class="progress-ring__track" cx="110" cy="110" r="100"/>
+                    <circle id="progress-ring-indicator" class="progress-ring__indicator" cx="110" cy="110" r="100"/>
+                </svg>
+                <div id="timer-display" class="timer-display">25:00</div>
+            </div>
+            <div class="timer-task-container">
+                <h3>Current Task:</h3>
+                <p id="current-task-display">Ready for a focus session!</p>
+            </div>
+            <div class="camera-container">
+                <video id="video" width="400" height="225" muted playsinline></video>
+                <div id="status-text">Camera Off</div>
+            </div>
+            <div class="timer-button-container">
+                <button id="timer-start-btn" class="btn start">Start</button>
+                <button id="timer-pause-btn" class="btn pause" disabled>Pause</button>
+                <button id="timer-reset-btn" class="btn reset" disabled>Reset</button>
+                <button id="timer-stop-btn" class="btn stop" disabled>Stop</button>
+            </div>
+            <div class="timer-settings">
+                <div><label>Work</label><input class="settings-input" type="number" id="work-minutes" value="25" min="1"></div>
+                <div><label>Short Break</label><input class="settings-input" type="number" id="short-break-minutes" value="5" min="1"></div>
+                <div><label>Long Break</label><input class="settings-input" type="number" id="long-break-minutes" value="15" min="1"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="section about-section" id="about">
+      <div class="about-header">
+        <h2 class="about-title">Design Thinking Process</h2>
+        <p class="ai-subtitle">Our complete methodology for creating Vidya AI, following the 5 steps of Design Thinking.</p>
+      </div>
+      <div class="design-thinking-content">
+        <!-- (Content from your provided PDF is placed here) -->
+        <h3>STEP 1: EMPATHIZE</h3>
+        <p><strong>Problem Identification:</strong> We observed that students consistently struggle with managing study schedules, leading to high stress and inefficient learning.</p>
+        <p><strong>User Understanding:</strong> Our target users (students 15-22) need a structured yet flexible plan and a way to combat distractions.</p>
+        <h3>STEP 2: DEFINE</h3>
+        <p><strong>"How Might We" Question:</strong> How might we create a smart, adaptive tool that empowers students to build effective study habits and reduce exam-related anxiety?</p>
+        <p><strong>Theme Connection:</strong> This project connects to the <strong>Industry 4.0</strong> theme by preparing a more organized and productive student workforce for Viksit Bharat 2047.</p>
+        <h3>STEP 3: IDEATE</h3>
+        <p><strong>Idea Selection:</strong> We chose to combine an AI-powered schedule generator with an intelligent focus timer. This provides a complete end-to-end solution for time management.</p>
+        <h3>STEP 4: PROTOTYPE</h3>
+        <p>Our prototype is an integrated web application featuring our in-house mathematical AI for scheduling and client-side computer vision for focus tracking. The system is designed to be 100% free, private, and instantaneous.</p>
+        <h3>STEP 5: TEST</h3>
+        <p><strong>Testing Strategy:</strong> We will test with three user types (High School, College, Competitive Exam Aspirants) to validate the scheduler's quality and the timer's effectiveness in reducing stress and improving focus.</p>
+        <h3>Team Information</h3>
+        <table class="team-table">
+            <thead><tr><th>Name of Team Member</th><th>Role of Team Member</th></tr></thead>
+            <tbody>
+                <tr><td>Aniket Roy</td><td>Team Lead & AI Developer</td></tr>
+                <tr><td>Yash</td><td>Frontend Developer</td></tr>
+                <tr><td>Ankit</td><td>Backend & Logic Developer</td></tr>
+                <tr><td>Sumanta</td><td>UI/UX Designer</td></tr>
+            </tbody>
+        </table>
+      </div>
+    </section>
+
+    <script type="module">
+        // ===================================================================================
+        // JAVASCRIPT - All logic combined into a single, self-contained script
+        // ===================================================================================
+        
+        // --- DOM Elements ---
+        const dom = {
+            mainNav: document.getElementById('main-nav'),
+            getStartedBtn: document.getElementById('get-started-btn'),
+            sections: document.querySelectorAll('.section'),
+            taskForm: document.getElementById('task-form'),
+            taskSubjectInput: document.getElementById('task-subject'),
+            taskNameInput: document.getElementById('task-name'),
+            taskDueDateInput: document.getElementById('task-due-date'),
+            taskHoursInput: document.getElementById('task-hours'),
+            taskPriorityInput: document.getElementById('task-priority'),
+            taskList: document.getElementById('task-list'),
+            generateScheduleBtn: document.getElementById('generate-schedule-btn'),
+            scheduleOutput: document.getElementById('schedule-output'),
+            dailyHoursInput: document.getElementById('daily-hours'),
+            clearDataBtn: document.getElementById('clear-data-btn'),
+            timerDisplay: document.getElementById('timer-display'),
+            currentTaskDisplay: document.getElementById('current-task-display'),
+            progressRingIndicator: document.getElementById('progress-ring-indicator'),
+            video: document.getElementById('video'),
+            statusText: document.getElementById('status-text'),
+            timerStartBtn: document.getElementById('timer-start-btn'),
+            timerPauseBtn: document.getElementById('timer-pause-btn'),
+            timerResetBtn: document.getElementById('timer-reset-btn'),
+            timerStopBtn: document.getElementById('timer-stop-btn'),
+            workMinutesInput: document.getElementById('work-minutes'),
+            shortBreakMinutesInput: document.getElementById('short-break-minutes'),
+            longBreakMinutesInput: document.getElementById('long-break-minutes'),
+            notification: document.getElementById('notification'),
+        };
+
+        // --- GLOBAL STATE ---
+        const state = {
+            tasks: [],
+            schedule: [],
+            timer: {
+                interval: null, remainingTime: 25 * 60, totalDuration: 25 * 60,
+                isRunning: false, isPaused: false, isBreak: false, pomodorosCompleted: 0,
+                settings: { work: 25, shortBreak: 5, longBreak: 15 }
+            },
+            camera: { isPersonPresent: true, autoPaused: false, }
+        };
+
+        // --- NOTIFICATIONS ---
+        let notificationTimeoutId;
+        function showNotification(message, type = 'info', duration = 3000) {
+            clearTimeout(notificationTimeoutId);
+            dom.notification.textContent = message;
+            dom.notification.className = `notification ${type} show`;
+            notificationTimeoutId = setTimeout(() => { dom.notification.classList.remove('show'); }, duration);
+        }
+
+        // --- LOCAL STORAGE ---
+        const STORAGE_KEY = 'vidyaAiState';
+        function saveState() {
+            const stateToSave = {
+                tasks: state.tasks,
+                schedule: state.schedule,
+                timerSettings: state.timer.settings
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+        }
+        function loadState() {
+            const savedState = localStorage.getItem(STORAGE_KEY);
+            if (savedState) {
+                const parsed = JSON.parse(savedState);
+                state.tasks = parsed.tasks || [];
+                state.schedule = parsed.schedule || [];
+                state.timer.settings = parsed.timerSettings || { work: 25, shortBreak: 5, longBreak: 15 };
+            }
+        }
+
+        // --- SCHEDULER AI (IN-HOUSE ALGORITHM) ---
+        function generateSchedule() {
+            const maxDailyHours = parseInt(dom.dailyHoursInput.value);
+            const tasks = state.tasks.filter(t => t.hours > 0);
+            if (tasks.length === 0) {
+                showNotification("Please add at least one incomplete task.", "error");
+                return;
+            }
+            
+            // --- AI Logic ---
+            const SHORT_BREAK_MINUTES = 10;
+            const AI_WEIGHTS = { URGENCY: 2.0, IMPORTANCE: 1.5, MAGNITUDE: 0.5 };
+            const URGENCY_DECAY_CONSTANT = 0.1;
+
+            const scoredTasks = tasks.map(task => {
+                const now = new Date(); now.setHours(0, 0, 0, 0);
+                const dueDate = new Date(task.dueDate);
+                const daysRemaining = (dueDate - now) / (1000 * 60 * 60 * 24);
+                const urgencyScore = daysRemaining < 0 ? 1000 : Math.exp(-URGENCY_DECAY_CONSTANT * daysRemaining);
+                const importanceScore = parseInt(task.priority) / 3;
+                const magnitudeScore = Math.log1p(task.hours);
+                const finalScore = Math.pow(urgencyScore, AI_WEIGHTS.URGENCY) * Math.pow(importanceScore, AI_WEIGHTS.IMPORTANCE) * Math.pow(magnitudeScore, AI_WEIGHTS.MAGNITUDE);
+                return { ...task, score: finalScore };
+            });
+
+            scoredTasks.sort((a, b) => b.score - b.score);
+
+            let studyBlocks = [];
+            scoredTasks.forEach(task => {
+                for (let i = 0; i < task.hours; i++) {
+                    studyBlocks.push({ subject: task.subject, name: task.name, type: 'study' });
+                }
+            });
+
+            let schedule = [];
+            let currentDate = new Date(); currentDate.setHours(0, 0, 0, 0);
+            let hoursToday = 0, studyBlocksToday = 0, timeSlotInMinutes = 9 * 60;
+
+            while (studyBlocks.length > 0) {
+                if (hoursToday >= maxDailyHours) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    hoursToday = 0; studyBlocksToday = 0; timeSlotInMinutes = 9 * 60;
+                }
+                const block = studyBlocks.shift();
+                const startTime = formatTime(timeSlotInMinutes);
+                timeSlotInMinutes += 60;
+                const endTime = formatTime(timeSlotInMinutes);
+                schedule.push({ date: currentDate.toISOString().split('T')[0], time: `${startTime} - ${endTime}`, task: `${block.subject}: ${block.name}`, type: 'study' });
+                hoursToday++; studyBlocksToday++;
+
+                if (studyBlocksToday > 0 && studyBlocksToday % 2 === 0 && hoursToday < maxDailyHours) {
+                    const breakStartTime = formatTime(timeSlotInMinutes);
+                    timeSlotInMinutes += SHORT_BREAK_MINUTES;
+                    const breakEndTime = formatTime(timeSlotInMinutes);
+                    schedule.push({ date: currentDate.toISOString().split('T')[0], time: `${breakStartTime} - ${breakEndTime}`, task: `Short Break`, type: 'break' });
+                }
+            }
+            state.schedule = schedule;
+            saveState();
+            renderSchedule();
+            showNotification("Schedule generated successfully!", "success");
+        }
+
+        // --- UI & RENDERING ---
+        let radius, circumference;
+        function initializeUI() {
+            const ring = dom.progressRingIndicator;
+            radius = ring.r.baseVal.value;
+            circumference = 2 * Math.PI * radius;
+            ring.style.strokeDasharray = `${circumference} ${circumference}`;
+            ring.style.strokeDashoffset = circumference;
+        }
+        function renderAll() {
+            renderTasks();
+            renderSchedule();
+            renderTimerUI();
+            updateTimerSettingsUI();
+        }
+        function renderTasks() {
+            dom.taskList.innerHTML = '';
+            if (state.tasks.length === 0) {
+                dom.taskList.innerHTML = '<li>No tasks added yet.</li>';
+                return;
+            }
+            state.tasks.forEach(task => {
+                const item = document.createElement('li');
+                item.className = 'task-item';
+                if (task.hours <= 0) item.classList.add('completed');
+                item.dataset.id = task.id;
+                item.innerHTML = `<div class="task-item-details"><strong>${task.subject}: ${task.name}</strong><span>Due: ${task.dueDate} | ${task.hours} hours left | Priority: ${task.priorityText}</span></div><button class="delete-btn">&times;</button>`;
+                dom.taskList.appendChild(item);
+            });
+        }
+        function renderSchedule() {
+            dom.scheduleOutput.innerHTML = '';
+            if (state.schedule.length === 0) {
+                dom.scheduleOutput.innerHTML = '<p class="placeholder">Your study plan will appear here...</p>';
+                return;
+            }
+            const scheduleByDay = state.schedule.reduce((acc, item) => {
+                if (!acc[item.date]) acc[item.date] = [];
+                acc[item.date].push(item);
+                return acc;
+            }, {});
+            for (const date in scheduleByDay) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'schedule-day';
+                const dateHeader = document.createElement('h3');
+                dateHeader.textContent = new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+                dayDiv.appendChild(dateHeader);
+                scheduleByDay[date].forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = `schedule-item ${item.type}`;
+                    itemDiv.innerHTML = `<strong>${item.time}</strong><span>${item.task}</span>`;
+                    dayDiv.appendChild(itemDiv);
+                });
+                dom.scheduleOutput.appendChild(dayDiv);
+            }
+        }
+        function renderTimerUI() {
+            const time = state.timer.remainingTime;
+            const minutes = Math.floor(time / 60).toString().padStart(2, '0');
+            const seconds = (time % 60).toString().padStart(2, '0');
+            dom.timerDisplay.textContent = `${minutes}:${seconds}`;
+            document.title = state.timer.isRunning ? `${minutes}:${seconds} - Focusing...` : 'Vidya AI';
+            const percentage = (state.timer.totalDuration > 0) ? (state.timer.remainingTime / state.timer.totalDuration) : 1;
+            const offset = circumference - (percentage * circumference);
+            dom.progressRingIndicator.style.strokeDashoffset = offset;
+            dom.progressRingIndicator.style.stroke = state.timer.isBreak ? 'var(--accent-blue)' : 'var(--accent-green)';
+            dom.timerDisplay.style.color = state.camera.autoPaused ? 'orange' : (state.timer.isPaused ? 'var(--accent-yellow)' : 'var(--text-color)');
+            dom.timerStartBtn.disabled = state.timer.isRunning;
+            dom.timerPauseBtn.disabled = !state.timer.isRunning;
+            dom.timerResetBtn.disabled = !state.timer.isRunning;
+            dom.timerStopBtn.disabled = !state.timer.isRunning;
+            dom.timerPauseBtn.textContent = state.timer.isPaused ? 'Resume' : 'Pause';
+        }
+        function updateTimerSettingsUI() {
+            dom.workMinutesInput.value = state.timer.settings.work;
+            dom.shortBreakMinutesInput.value = state.timer.settings.shortBreak;
+            dom.longBreakMinutesInput.value = state.timer.settings.longBreak;
+        }
+
+        // --- TIMER & CAMERA LOGIC ---
+        let isCameraInitialized = false, detectionInterval = null;
+        const ROUNDS_BEFORE_LONG_BREAK = 4;
+        const sounds = { workEnd: new Audio('assets/work_end.wav'), breakEnd: new Audio('assets/break_end.wav') };
+
+        function runInterval() {
+            clearInterval(state.timer.interval);
+            state.timer.interval = setInterval(() => {
+                if (state.timer.isPaused) return;
+                state.timer.remainingTime--;
+                renderTimerUI();
+                if (state.timer.remainingTime < 0) handleTimerEnd();
+            }, 1000);
+        }
+        function startTimer() {
+            initCameraAndDetection();
+            state.timer.isRunning = true;
+            state.timer.isPaused = false;
+            state.camera.autoPaused = false;
+            state.timer.isBreak = false;
+            state.timer.totalDuration = state.timer.settings.work * 60;
+            state.timer.remainingTime = state.timer.settings.work * 60;
+            renderTimerUI();
+            runInterval();
+        }
+        function pauseTimer(isAutoPause = false) {
+            if (!state.timer.isRunning || state.timer.isPaused) return;
+            state.timer.isPaused = true;
+            state.camera.autoPaused = isAutoPause;
+            renderTimerUI();
+        }
+        function resumeTimer() {
+            if (!state.timer.isRunning || !state.timer.isPaused) return;
+            state.timer.isPaused = false;
+            state.camera.autoPaused = false;
+            renderTimerUI();
+        }
+        function stopTimer() {
+            clearInterval(state.timer.interval);
+            state.timer.isRunning = false;
+            state.timer.isPaused = false;
+            state.camera.autoPaused = false;
+            state.timer.isBreak = false;
+            state.timer.totalDuration = state.timer.settings.work * 60;
+            state.timer.remainingTime = state.timer.settings.work * 60;
+            stopCamera();
+            renderTimerUI();
+        }
+        function resetTimer() {
+            if (!state.timer.isRunning) return;
+            clearInterval(state.timer.interval);
+            const isBreak = state.timer.isBreak;
+            const duration = isBreak ? (state.timer.pomodorosCompleted % ROUNDS_BEFORE_LONG_BREAK === 0 ? state.timer.settings.longBreak : state.timer.settings.shortBreak) : state.timer.settings.work;
+            state.timer.totalDuration = duration * 60;
+            state.timer.remainingTime = duration * 60;
+            if (!state.timer.isPaused) runInterval();
+            renderTimerUI();
+        }
+        function handleTimerEnd() {
+            clearInterval(state.timer.interval);
+            state.timer.isRunning = false;
+            if (!state.timer.isBreak) {
+                state.timer.pomodorosCompleted++;
+                sounds.workEnd.play();
+                if (state.timer.pomodorosCompleted % ROUNDS_BEFORE_LONG_BREAK === 0) {
+                    showNotification("Long break time!", 'success');
+                    startBreak(state.timer.settings.longBreak);
+                } else {
+                    showNotification("Take a short break!", 'success');
+                    startBreak(state.timer.settings.shortBreak);
+                }
+            } else {
+                sounds.breakEnd.play();
+                showNotification("Break's over! Back to work.", 'info');
+                stopTimer();
+            }
+        }
+        function startBreak(duration) {
+            state.timer.isRunning = true;
+            state.timer.isPaused = false;
+            state.camera.autoPaused = false;
+            state.timer.isBreak = true;
+            state.timer.totalDuration = duration * 60;
+            state.timer.remainingTime = duration * 60;
+            renderTimerUI();
+            runInterval();
+        }
+        async function initCameraAndDetection() {
+            if (isCameraInitialized) return;
+            isCameraInitialized = true;
+            try {
+                dom.statusText.textContent = "Loading Models...";
+                await faceapi.nets.tinyFaceDetector.loadFromUri('./models');
+                dom.statusText.textContent = "Starting Camera...";
+                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                dom.video.srcObject = stream;
+                await dom.video.play();
+                startDetectionLoop();
+            } catch (err) { dom.statusText.textContent = "Camera Error"; console.error(err); }
+        }
+        function stopCamera() {
+            if (dom.video.srcObject) {
+                dom.video.srcObject.getTracks().forEach(track => track.stop());
+                dom.video.srcObject = null;
+            }
+            clearInterval(detectionInterval);
+            dom.statusText.textContent = "Camera Off";
+            isCameraInitialized = false;
+        }
+        function startDetectionLoop() {
+            clearInterval(detectionInterval);
+            detectionInterval = setInterval(async () => {
+                if (!dom.video.srcObject) return;
+                const detections = await faceapi.detectAllFaces(dom.video, new faceapi.TinyFaceDetectorOptions());
+                const personDetected = detections.length > 0;
+                if (personDetected !== state.camera.isPersonPresent) {
+                    handlePersonPresence(personDetected);
+                }
+            }, 2000);
+        }
+        function handlePersonPresence(isPresent) {
+            state.camera.isPersonPresent = isPresent;
+            if (isPresent) {
+                dom.statusText.textContent = "FACE DETECTED";
+                if (state.timer.isRunning && state.timer.isPaused && state.camera.autoPaused) resumeTimer();
+            } else {
+                dom.statusText.textContent = "NO FACE DETECTED";
+                if (state.timer.isRunning && !state.timer.isPaused) pauseTimer(true);
+            }
+        }
+
+        // --- MAIN APP LOGIC & EVENT LISTENERS ---
+        function showSection(sectionId) {
+            dom.sections.forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId)?.classList.add('active');
+            dom.mainNav.querySelectorAll('li').forEach(li => li.classList.toggle('active', li.dataset.section === sectionId));
+            if (sectionId === 'timer') initCameraAndDetection();
+            else stopCamera();
+        }
+        function handleAddTask(event) {
+            event.preventDefault();
+            const newTask = {
+                id: Date.now(),
+                subject: dom.taskSubjectInput.value,
+                name: dom.taskNameInput.value,
+                dueDate: dom.taskDueDateInput.value,
+                hours: parseInt(dom.taskHoursInput.value),
+                priority: dom.taskPriorityInput.value,
+                priorityText: dom.taskPriorityInput.options[dom.taskPriorityInput.selectedIndex].text
+            };
+            state.tasks.push(newTask);
+            saveState();
+            renderTasks();
+            dom.taskForm.reset();
+        }
+        function handleDeleteTask(event) {
+            if (event.target.classList.contains('delete-btn')) {
+                const taskId = parseInt(event.target.closest('.task-item').dataset.id);
+                state.tasks = state.tasks.filter(task => task.id !== taskId);
+                saveState();
+                renderTasks();
+            }
+        }
+        function handleClearData() {
+            if (confirm("Are you sure you want to clear all your tasks?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                window.location.reload();
+            }
+        }
+        function handleTimerSettingsChange() {
+            state.timer.settings.work = parseInt(dom.workMinutesInput.value) || 25;
+            state.timer.settings.shortBreak = parseInt(dom.shortBreakMinutesInput.value) || 5;
+            state.timer.settings.longBreak = parseInt(dom.longBreakMinutesInput.value) || 15;
+            if (!state.timer.isRunning) stopTimer();
+            saveState();
+        }
+
+        function setupEventListeners() {
+            dom.mainNav.addEventListener('click', (e) => {
+                if (e.target.tagName === 'LI' && e.target.dataset.section) {
+                    showSection(e.target.dataset.section);
+                }
+            });
+            dom.getStartedBtn.addEventListener('click', () => showSection('scheduler'));
+            dom.taskForm.addEventListener('submit', handleAddTask);
+            dom.taskList.addEventListener('click', handleDeleteTask);
+            dom.generateScheduleBtn.addEventListener('click', generateSchedule);
+            dom.clearDataBtn.addEventListener('click', handleClearData);
+            dom.timerStartBtn.addEventListener('click', startTimer);
+            dom.timerPauseBtn.addEventListener('click', () => { state.timer.isPaused ? resumeTimer() : pauseTimer(false); });
+            dom.timerResetBtn.addEventListener('click', resetTimer);
+            dom.timerStopBtn.addEventListener('click', stopTimer);
+            dom.workMinutesInput.addEventListener('change', handleTimerSettingsChange);
+            dom.shortBreakMinutesInput.addEventListener('change', handleTimerSettingsChange);
+            dom.longBreakMinutesInput.addEventListener('change', handleTimerSettingsChange);
+        }
+
+        function initializeApp() {
+            loadState();
+            initializeUI();
+            renderAll();
+            setupEventListeners();
+            showSection('home');
+        }
+
+        initializeApp();
+
+        function formatTime(minutes) {
+            const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+            const m = (minutes % 60).toString().padStart(2, '0');
+            return `${h}:${m}`;
+        }
+
+    </script>
+</body>
+</html>
