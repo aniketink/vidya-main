@@ -2,7 +2,7 @@
 
 An AI-Powered Study Schedule Generator designed to enhance student productivity. This project was submitted as part of the **AI VidyaSetu 1.0 - Code for New Bharat** initiative, aiming to build a more organized and resilient student workforce for a Viksit Bharat 2047.
 
-![StudyBuddy Screenshot](https://i.imgur.com/your-screenshot-url.png) <!-- It's highly recommended to replace this with a screenshot of your actual application -->
+![StudyBuddy Screenshot](<img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/f430faa5-d64a-40df-addb-de4662cfa26a" />) <!-- It's highly recommended to replace this with a screenshot of your actual application -->
 
 ## 🚀 Key Features
 
